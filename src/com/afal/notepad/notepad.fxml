@@ -7,25 +7,27 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.121" fx:controller="com.afal.notepad.NotepadController">
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/8.0.121"
+      fx:controller="com.afal.notepad.NotepadController">
     <MenuBar fx:id="menuBar">
         <Menu text="File">
-            <MenuItem text="New" onAction="#handleNewActionEvent"/>
-            <MenuItem text="Open..." onAction="#handleOpenActionEvent"/>
-            <MenuItem text="Save" onAction="#handleSaveActionEvent"/>
-            <MenuItem text="Save as..." onAction="#handleSaveAsActionEvent"/>
+            <MenuItem text="New" onAction="#handleNewMenuItem" accelerator="Shortcut + N"/>
+            <MenuItem text="Open..." onAction="#handleOpenMenuItem" accelerator="Shortcut + O"/>
+            <MenuItem text="Save" onAction="#handleSaveMenuItem" accelerator="Shortcut + S"/>
+            <MenuItem text="Save as..." onAction="#handleSaveAsMenuItem"/>
             <SeparatorMenuItem />
-            <MenuItem text="Exit" />
+            <MenuItem text="Exit" onAction="#handleExitMenuItem" accelerator="Shortcut + E"/>
         </Menu>
         <Menu text="Edit">
-            <MenuItem text="Copy" />
-            <MenuItem text="Cut" />
-            <MenuItem text="Paste" />
+            <MenuItem text="Copy" onAction="#handleCopyMenuItem" accelerator="Shortcut + C"/>
+            <MenuItem text="Cut" onAction="#handleCutMenuItem" accelerator="Shortcut + X"/>
+            <MenuItem text="Paste" onAction="#handlePasteMenuItem" accelerator="Shortcut + V"/>
         </Menu>
         <Menu text="Help">
             <MenuItem text="About" />
         </Menu>
     </MenuBar>
 
-    <TextArea fx:id="textArea" onKeyPressed="#setWasChanged" VBox.vgrow="ALWAYS" />
+    <TextArea fx:id="textArea"  VBox.vgrow="ALWAYS" />
 </VBox>
