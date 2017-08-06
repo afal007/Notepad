@@ -1,10 +1,12 @@
 package com.afal.notepad;
 
+import com.afal.notepad.file.FileIO;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,31 +14,16 @@ import java.net.URL;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
-
 public class NotepadController implements Initializable {
-    private boolean wasChanged = false;
-    private Stage mainStage;
-
-    private File curFile;
-
-    private enum Action {
-        CANCEL,
-        CONTINUE
-    }
-
-    private enum FileAction {
-        SAVE,
-        OPEN
-    }
-
     @FXML
     TextArea textArea;
-
     @FXML
     MenuBar menuBar;
+    private boolean wasChanged = false;
+    private Stage mainStage;
+    private File curFile;
 
-    @FXML
-    public void setWasChanged() {
+    private void setWasChanged() {
         if(!wasChanged) {
             wasChanged = true;
             String[] titleParts = mainStage.getTitle().split(" - ");
@@ -45,23 +32,24 @@ public class NotepadController implements Initializable {
     }
 
     @FXML
-    public void handleNewActionEvent() {
+    public void handleNewMenuItem() {
         if(wasChanged)
             if(getConfirmation() == Action.CANCEL)
                 return;
 
-        mainStage.setTitle(Main.MAIN_STAGE_TITLE);
         textArea.setText("");
+        mainStage.setTitle(Main.MAIN_STAGE_TITLE);
         wasChanged = false;
+        curFile = null;
     }
 
     @FXML
-    public void handleSaveActionEvent() {
+    public void handleSaveMenuItem() {
         if(!wasChanged)
             return;
 
         if(curFile == null) {
-            handleSaveAsActionEvent();
+            handleSaveAsMenuItem();
             return;
         }
 
@@ -69,7 +57,7 @@ public class NotepadController implements Initializable {
     }
 
     @FXML
-    public void handleSaveAsActionEvent() {
+    public void handleSaveAsMenuItem() {
         curFile = getFile(FileAction.SAVE);
         if(curFile == null)
             return;
@@ -82,7 +70,7 @@ public class NotepadController implements Initializable {
             FileIO.writeTo(curFile, textArea.getText());
             wasChanged = false;
             setCanonicalStageName();
-        } catch (IOException e) {
+        } catch (IllegalArgumentException e) {
             showErrorAlert(e.getMessage());
         }
     }
@@ -94,7 +82,7 @@ public class NotepadController implements Initializable {
     }
 
     @FXML
-    public void handleOpenActionEvent() {
+    public void handleOpenMenuItem() {
         if(wasChanged)
             if(getConfirmation() == Action.CANCEL)
                 return;
@@ -113,8 +101,14 @@ public class NotepadController implements Initializable {
         }
     }
 
+    @FXML
+    public void handleExitMenuItem() {
+        mainStage.fireEvent(new WindowEvent(mainStage, WindowEvent.WINDOW_CLOSE_REQUEST));
+    }
+
     private void showErrorAlert(String text) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.initOwner(mainStage);
         alert.setTitle(Main.APP_NAME);
         alert.setHeaderText(text);
         alert.show();
@@ -139,13 +133,14 @@ public class NotepadController implements Initializable {
     private Action getConfirmation() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Java Notepad");
+        alert.initOwner(mainStage);
         alert.setHeaderText("Do you want to save changes" +
                 (curFile != null
                         ? " to " + curFile.getAbsolutePath() + "?"
                         : "?"));
 
-        ButtonType save = new ButtonType("Save");
-        ButtonType dontSave = new ButtonType("Don't save");
+        ButtonType save = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        ButtonType dontSave = new ButtonType("Don't save", ButtonBar.ButtonData.NO);
         ButtonType cancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
         alert.getButtonTypes().setAll(save, dontSave, cancel);
@@ -154,10 +149,25 @@ public class NotepadController implements Initializable {
         if (!result.isPresent() || result.get() == cancel) {
             return Action.CANCEL;
         } else if(result.get() == save) {
-            handleSaveAsActionEvent();
+            handleSaveMenuItem();
         }
 
         return Action.CONTINUE;
+    }
+
+    @FXML
+    public void handleCopyMenuItem() {
+        textArea.copy();
+    }
+
+    @FXML
+    public void handleCutMenuItem() {
+        textArea.cut();
+    }
+
+    @FXML
+    public void handlePasteMenuItem() {
+        textArea.paste();
     }
 
     @Override
@@ -168,5 +178,16 @@ public class NotepadController implements Initializable {
                 if(getConfirmation() == Action.CANCEL)
                     e.consume(); //Cancel close request
         });
+        textArea.textProperty().addListener((observable -> setWasChanged()));
+    }
+
+    private enum Action {
+        CANCEL,
+        CONTINUE
+    }
+
+    private enum FileAction {
+        SAVE,
+        OPEN
     }
 }
