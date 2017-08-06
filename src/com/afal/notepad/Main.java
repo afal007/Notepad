@@ -8,7 +8,7 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
     static final String APP_NAME = "Java Notepad";
-    private static final String NEW_FILE_NAME = "Untitled";
+    static final String NEW_FILE_NAME = "Untitled";
     static final String MAIN_STAGE_TITLE = NEW_FILE_NAME + " - " + APP_NAME;
 
     private static Stage mainStage;
