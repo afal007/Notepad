@@ -6,8 +6,6 @@ import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-import javafx.event.ActionEvent;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -18,10 +16,18 @@ import java.util.ResourceBundle;
 public class NotepadController implements Initializable {
     private boolean wasChanged = false;
     private Stage mainStage;
-    private static final int CANCEL = -1;
-    private static final int CONTINUE = 0;
 
     private File curFile;
+
+    private enum Action {
+        CANCEL,
+        CONTINUE
+    }
+
+    private enum FileAction {
+        SAVE,
+        OPEN
+    }
 
     @FXML
     TextArea textArea;
@@ -41,7 +47,7 @@ public class NotepadController implements Initializable {
     @FXML
     public void handleNewActionEvent() {
         if(wasChanged)
-            if(showConfirmationDialog() == CANCEL)
+            if(getConfirmation() == Action.CANCEL)
                 return;
 
         mainStage.setTitle(Main.MAIN_STAGE_TITLE);
@@ -59,38 +65,49 @@ public class NotepadController implements Initializable {
             return;
         }
 
+        saveToCurFile();
+    }
+
+    @FXML
+    public void handleSaveAsActionEvent() {
+        curFile = getFile(FileAction.SAVE);
+        if(curFile == null)
+            return;
+
+        saveToCurFile();
+    }
+
+    private void saveToCurFile() {
         try {
             FileIO.writeTo(curFile, textArea.getText());
             wasChanged = false;
-            mainStage.setTitle(curFile.getName() + " - " + Main.APP_NAME);
+            setCanonicalStageName();
         } catch (IOException e) {
             showErrorAlert(e.getMessage());
         }
     }
 
-    @FXML
-    public void handleSaveAsActionEvent() {
-        if(!wasChanged)
-            return;
-
-
+    private void setCanonicalStageName() {
+        mainStage.setTitle((curFile != null
+                ? curFile.getName()
+                : Main.NEW_FILE_NAME) + " - " + Main.APP_NAME);
     }
 
     @FXML
     public void handleOpenActionEvent() {
         if(wasChanged)
-            if(showConfirmationDialog() == CANCEL)
+            if(getConfirmation() == Action.CANCEL)
                 return;
 
         try {
-            curFile = getFileToOpen();
+            curFile = getFile(FileAction.OPEN);
             if(curFile == null)
                 return;
 
             String text = FileIO.readFrom(curFile);
             textArea.setText(text);
             wasChanged = false;
-            mainStage.setTitle(curFile.getName() + " - " + Main.APP_NAME);
+            setCanonicalStageName();
         } catch (IOException e) {
             showErrorAlert("Couldn't read from specified file.");
         }
@@ -103,17 +120,23 @@ public class NotepadController implements Initializable {
         alert.show();
     }
 
-    private File getFileToOpen() {
+    private File getFile(FileAction action) {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Open");
         chooser.getExtensionFilters().setAll(
                 new FileChooser.ExtensionFilter("Text Documents", "*.txt"),
                 new FileChooser.ExtensionFilter("All Files", "*.*"));
 
-        return chooser.showOpenDialog(mainStage);
+        if(action == FileAction.OPEN) {
+            chooser.setTitle("Open");
+            return chooser.showOpenDialog(mainStage);
+        } else {
+            chooser.setTitle("Save As");
+            chooser.setInitialFileName("*.txt");
+            return chooser.showSaveDialog(mainStage);
+        }
     }
 
-    private int showConfirmationDialog() {
+    private Action getConfirmation() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Java Notepad");
         alert.setHeaderText("Do you want to save changes" +
@@ -129,12 +152,12 @@ public class NotepadController implements Initializable {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (!result.isPresent() || result.get() == cancel) {
-            return CANCEL;
+            return Action.CANCEL;
         } else if(result.get() == save) {
             handleSaveAsActionEvent();
         }
 
-        return CONTINUE;
+        return Action.CONTINUE;
     }
 
     @Override
@@ -142,7 +165,7 @@ public class NotepadController implements Initializable {
         mainStage = Main.getMainStage();
         mainStage.setOnCloseRequest((e) -> {
             if(wasChanged)
-                if(showConfirmationDialog() == CANCEL)
+                if(getConfirmation() == Action.CANCEL)
                     e.consume(); //Cancel close request
         });
     }
