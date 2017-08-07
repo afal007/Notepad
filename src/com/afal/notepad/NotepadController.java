@@ -14,6 +14,10 @@ import java.net.URL;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
+/**
+ * Controller for main stage. Contains handlers for menu buttons.
+ * @author Alexander Fal (falalexandr007@gmail.com)
+ */
 public class NotepadController implements Initializable {
     @FXML
     TextArea textArea;
@@ -23,6 +27,9 @@ public class NotepadController implements Initializable {
     private Stage mainStage;
     private File curFile;
 
+/*
+* Add asterisk to title and set variable.
+* */
     private void setWasChanged() {
         if(!wasChanged) {
             wasChanged = true;
@@ -31,6 +38,11 @@ public class NotepadController implements Initializable {
         }
     }
 
+    /**
+     * Handles New menu item action event.
+     * If document was changed shows confirmation dialog.
+     * Resets workspace.
+     */
     @FXML
     public void handleNewMenuItem() {
         if(wasChanged)
@@ -43,6 +55,13 @@ public class NotepadController implements Initializable {
         curFile = null;
     }
 
+    /**
+     * Handles Save menu item action event.
+     * If document wasn't changed - do nothing.
+     * Write to current document or let user choose location if it wasn't specified yet.
+     * @return internal enum element. If cancel button was pressed Cancel, else Continue. It is needed to correctly
+     * stop window close request if cancel button is pressed.
+     */
     @FXML
     public Action handleSaveMenuItem() {
         if(!wasChanged)
@@ -56,6 +75,11 @@ public class NotepadController implements Initializable {
         return Action.CONTINUE;
     }
 
+    /**
+     * Use file chooser to specify location to save document.
+     * @return internal enum element. If cancel button was pressed Cancel, else Continue. It is needed to correctly
+     * stop window close request if cancel button is pressed.
+     */
     @FXML
     public Action handleSaveAsMenuItem() {
         curFile = getFile(FileAction.SAVE);
@@ -66,6 +90,10 @@ public class NotepadController implements Initializable {
         return Action.CONTINUE;
     }
 
+/*
+* Use helper method from util class.
+* Reset was changed state.
+* */
     private void saveToCurFile() {
         try {
             FileIO.writeTo(curFile, textArea.getText());
@@ -76,12 +104,23 @@ public class NotepadController implements Initializable {
         }
     }
 
+/*
+* Untitled - Java Notepad
+* or
+* curFile - Java Notepad
+* */
     private void setCanonicalStageName() {
         mainStage.setTitle((curFile != null
                 ? curFile.getName()
                 : Main.NEW_FILE_NAME) + " - " + Main.APP_NAME);
     }
 
+    /**
+     * Use file chooser to specify document to open.
+     * Show confirmation dialog if current document was changed but wasn't saved.
+     * Read text from specified file into {@link TextArea}.
+     * Reset was changed state.
+     */
     @FXML
     public void handleOpenMenuItem() {
         if(wasChanged)
@@ -102,11 +141,17 @@ public class NotepadController implements Initializable {
         }
     }
 
+    /**
+     * Fire {@link WindowEvent#WINDOW_CLOSE_REQUEST}
+     */
     @FXML
     public void handleExitMenuItem() {
         mainStage.fireEvent(new WindowEvent(mainStage, WindowEvent.WINDOW_CLOSE_REQUEST));
     }
 
+/*
+* Set up and show alert dialog with specified text string.
+* */
     private void showErrorAlert(String text) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.initOwner(mainStage);
@@ -115,6 +160,10 @@ public class NotepadController implements Initializable {
         alert.show();
     }
 
+
+/*
+* Set up and show File Chooser save or open dialog depending on specified argument.
+* */
     private File getFile(FileAction action) {
         FileChooser chooser = new FileChooser();
         chooser.getExtensionFilters().setAll(
@@ -131,6 +180,9 @@ public class NotepadController implements Initializable {
         }
     }
 
+/*
+* Set up and show confirmation dialog if current document was changed but wasn't saved
+* */
     private Action getConfirmation() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Java Notepad");
@@ -171,6 +223,9 @@ public class NotepadController implements Initializable {
         textArea.paste();
     }
 
+    /**
+     * Set up and show simple dialog with text about application.
+     */
     @FXML
     public void handleAboutMenuItem() {
         Dialog dialog = new Alert(Alert.AlertType.NONE);
@@ -194,11 +249,17 @@ public class NotepadController implements Initializable {
         textArea.textProperty().addListener((observable -> setWasChanged()));
     }
 
+/*
+* Internal enum used for handling situations in which Cancel button should prevent application from closing.
+* */
     private enum Action {
         CANCEL,
         CONTINUE
     }
 
+/*
+* Used to generify getFile method
+* */
     private enum FileAction {
         SAVE,
         OPEN
