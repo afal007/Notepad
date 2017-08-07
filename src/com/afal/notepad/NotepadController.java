@@ -44,25 +44,26 @@ public class NotepadController implements Initializable {
     }
 
     @FXML
-    public void handleSaveMenuItem() {
+    public Action handleSaveMenuItem() {
         if(!wasChanged)
-            return;
+            return Action.CANCEL;
 
         if(curFile == null) {
-            handleSaveAsMenuItem();
-            return;
+            return handleSaveAsMenuItem();
         }
 
         saveToCurFile();
+        return Action.CONTINUE;
     }
 
     @FXML
-    public void handleSaveAsMenuItem() {
+    public Action handleSaveAsMenuItem() {
         curFile = getFile(FileAction.SAVE);
         if(curFile == null)
-            return;
+            return Action.CANCEL;
 
         saveToCurFile();
+        return Action.CONTINUE;
     }
 
     private void saveToCurFile() {
@@ -149,7 +150,7 @@ public class NotepadController implements Initializable {
         if (!result.isPresent() || result.get() == cancel) {
             return Action.CANCEL;
         } else if(result.get() == save) {
-            handleSaveMenuItem();
+            return handleSaveMenuItem();
         }
 
         return Action.CONTINUE;
@@ -168,6 +169,18 @@ public class NotepadController implements Initializable {
     @FXML
     public void handlePasteMenuItem() {
         textArea.paste();
+    }
+
+    @FXML
+    public void handleAboutMenuItem() {
+        Dialog dialog = new Alert(Alert.AlertType.NONE);
+        dialog.getDialogPane().getButtonTypes().add(
+                new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE));
+
+        dialog.initOwner(mainStage);
+        dialog.setTitle(Main.APP_NAME);
+        dialog.setContentText("Java Notepad v1.0\nAuthor: Alexander Fal (falalexandr007@gmail.com)");
+        dialog.show();
     }
 
     @Override

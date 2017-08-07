@@ -25,7 +25,7 @@
             <MenuItem text="Paste" onAction="#handlePasteMenuItem" accelerator="Shortcut + V"/>
         </Menu>
         <Menu text="Help">
-            <MenuItem text="About" />
+            <MenuItem text="About" onAction="#handleAboutMenuItem" />
         </Menu>
     </MenuBar>
 
